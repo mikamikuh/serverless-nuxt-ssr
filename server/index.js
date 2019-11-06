@@ -1,3 +1,4 @@
+const awsServerlessExpress = require('aws-serverless-express')
 const express = require('express')
 const consola = require('consola')
 const { Nuxt, Builder } = require('nuxt')
@@ -7,7 +8,7 @@ const app = express()
 const config = require('../nuxt.config.js')
 config.dev = process.env.NODE_ENV !== 'production'
 
-async function start () {
+async function initApp() {
   // Init Nuxt.js
   const nuxt = new Nuxt(config)
 
@@ -31,4 +32,30 @@ async function start () {
     badge: true
   })
 }
-start()
+
+const binaryMimeTypes = [
+  'application/javascript',
+  'application/json',
+  'application/octet-stream',
+  'application/xml',
+  'font/eot',
+  'font/opentype',
+  'font/otf',
+  'image/jpeg',
+  'image/png',
+  'image/svg+xml',
+  'text/comma-separated-values',
+  'text/css',
+  'text/html',
+  'text/javascript',
+  'text/plain',
+  'text/text',
+  'text/xml'
+]
+
+exports.handler = (event, context) => {
+  initApp().then((app) => {
+    const server = awsServerlessExpress.createServer(app, null, binaryMimeTypes)
+    awsServerlessExpress.proxy(server, event, context)
+  })
+}
